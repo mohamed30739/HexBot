@@ -43,15 +43,15 @@ let deploymentTimestamp = null;
 
         console.log('✅ تم تسجيل دخول الـ Bot بنجاح');
         console.log(`🆔 المعرف: ${client.user.tag} (${client.user.id})`);
+client.once('ready', () => {
+    const totalUsers = client.guilds.cache.reduce(
+        (acc, guild) => acc + (guild.memberCount ?? 0),
+        0
+    );
 
-        const totalUsers = client.guilds.cache.reduce(
-            (acc, guild) => acc + (guild.memberCount || 0),
-            0
-        );
-
-        console.log(`🌐 عدد السيرفرات: ${client.guilds.cache.size}`);
-        console.log(`👥 إجمالي الأعضاء: ${totalUsers.toLocaleString()} عضو`);
-
+    console.log(`🌐 عدد السيرفرات: ${client.guilds.cache.size}`);
+    console.log(`👥 إجمالي الأعضاء: ${totalUsers.toLocaleString()} عضو`);
+});
     } catch (error) {
         console.error('❌ فشل تسجيل الدخول:', error);
         process.exit(1);

@@ -22,24 +22,46 @@ module.exports = {
                 });
             }
         }
+const command = client.commands.get(interaction.commandName);
+if (!command) return;
 
-        cooldowns.set(key, Date.now() + cooldown);
-        setTimeout(() => cooldowns.delete(key), cooldown);
+// التحقق من صلاحيات المستخدم
+if (command.permissions) {
+    const missing = command.permissions.filter(
+        perm => !interaction.member.permissions.has(perm)
+    );
 
-        const command = client.commands.get(interaction.commandName);
-        if (!command) return;
+    if (missing.length) {
+        return interaction.reply({
+            content: "❌ ليس لديك الصلاحية لاستخدام هذا الأمر.",
+            ephemeral: true,
+        });
+    }
+}
 
-        try {
-            await command.execute(interaction);
-        } catch (error) {
-            console.error(`❌ خطأ في تنفيذ الأمر ${interaction.commandName}:`, error);
+// التحقق من صلاحيات البوت
+if (command.botPermissions) {
+    const missing = command.botPermissions.filter(
+        perm => !interaction.guild.members.me.permissions.has(perm)
+    );
 
-            if (!interaction.replied && !interaction.deferred) {
-                await interaction.reply({
-                    content: '⚠️ حدث خطأ أثناء تنفيذ الأمر.',
-                    ephemeral: true,
-                });
-            }
-        }
-    },
-};
+    if (missing.length) {
+        return interaction.reply({
+            content: "❌ البوت لا يملك الصلاحيات اللازمة لتنفيذ هذا الأمر.",
+            ephemeral: true,
+        });
+    }
+}
+
+try {
+    await command.execute(interaction);
+} catch (error) {
+    console.error(`❌ خطأ في تنفيذ الأمر ${interaction.commandName}:`, error);
+
+    if (!interaction.replied && !interaction.deferred) {
+        await interaction.reply({
+            content: '⚠️ حدث خطأ أثناء تنفيذ الأمر.',
+            ephemeral: true,
+        });
+    }
+}
