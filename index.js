@@ -1,15 +1,16 @@
 // Discord Bot Entry Point
 // إعداد وتأسيس الاتصال الرئيسي للـ bot
-require('dotenv').config(); // تحميل متغيرات .env
-const { Client, GatewayIntentBits, Partials, Events } = require('discord.js');
-const { Guilds, GuildMembers, GuildMessages, GuildVoiceStates, MessageComponents } = GatewayIntentBits;
+require('dotenv').config();
+
+const { Client, GatewayIntentBits, Partials } = require('discord.js');
+const { Guilds, GuildMembers, GuildMessages, GuildVoiceStates } = GatewayIntentBits;
 const { Message, User, Thread, Channel } = Partials;
 
-// استيراد إداريي تحميل الأوامر والأحداث
+// استيراد تحميل الأوامر والأحداث
 const { loadCommands } = require('./handlers/commandHandler');
 const { loadEvents } = require('./handlers/eventHandler');
 
-// تهيئة الـ client
+// إنشاء الـ Client
 const client = new Client({
     intents: [
         Guilds,
@@ -18,14 +19,13 @@ const client = new Client({
         GuildVoiceStates,
     ],
     partials: [Message, User, Thread, Channel],
-    // استخدام token من البيئة فقط في الإنتاج
 });
 
-// حالة التجهيز
+// حالة البوت
 let isReady = false;
 let deploymentTimestamp = null;
 
-// تشغيل الـ bot
+// تشغيل البوت
 (async () => {
     try {
         console.log('🤖 بدء تشغيل الـ Bot...');
@@ -35,31 +35,44 @@ let deploymentTimestamp = null;
         await loadCommands(client);
         await loadEvents(client);
 
-        // تسجيل دخول الـ bot
+        // تسجيل الدخول
         await client.login(process.env.TOKEN);
+
         isReady = true;
         deploymentTimestamp = Date.now();
-        console.log(`✅ تم تسجيل دخول الـ Bot بنجاح`);
+
+        console.log('✅ تم تسجيل دخول الـ Bot بنجاح');
         console.log(`🆔 المعرف: ${client.user.tag} (${client.user.id})`);
-        console.log(`🌐 إجمالي الأعضاء: ${client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0).toLocaleString()} عضو`);
+
+        const totalUsers = client.guilds.cache.reduce(
+            (acc, guild) => acc + (guild.memberCount || 0),
+            0
+        );
+
+        console.log(`🌐 عدد السيرفرات: ${client.guilds.cache.size}`);
+        console.log(`👥 إجمالي الأعضاء: ${totalUsers.toLocaleString()} عضو`);
+
     } catch (error) {
         console.error('❌ فشل تسجيل الدخول:', error);
         process.exit(1);
     }
 })();
 
-// معالجة أخطاء الاتصال
+// أخطاء الاتصال
 client.on('error', (error) => {
     console.error('🚨 خطأ في الاتصال:', error);
 });
 
-client.on('debug', (info) => {
-    console.log('🐛 DEBUG:', info);
-});
+// رسائل Debug (فقط أثناء التطوير)
+if (process.env.NODE_ENV === 'development') {
+    client.on('debug', (info) => {
+        console.log('🐛 DEBUG:', info);
+    });
+}
 
-// غسلقة الإغلاق الناعمة
+// إيقاف البوت بشكل آمن
 process.on('SIGINT', async () => {
-    console.log('\\n🔌 جاري إيقاف تشغيل الـ Bot...');
+    console.log('\n🔌 جاري إيقاف تشغيل الـ Bot...');
     try {
         await client.destroy();
         console.log('✅ تم إغلاق الاتصال بنجاح');
@@ -71,7 +84,7 @@ process.on('SIGINT', async () => {
 });
 
 process.on('SIGTERM', async () => {
-    console.log('\\n🔌 تم استلام SIGTERM، جاري إيقاف التشغيل...');
+    console.log('\n🔌 تم استلام SIGTERM، جاري إيقاف التشغيل...');
     try {
         await client.destroy();
         console.log('✅ تم إيقاف التشغيل بنجاح');
@@ -82,10 +95,16 @@ process.on('SIGTERM', async () => {
     }
 });
 
-// بيانات الصحة للبيئة الخارجية (اختياري)
+// معلومات عن حالة البوت
 client.health = {
     isReady: () => isReady,
     uptime: () => isReady ? Date.now() - (deploymentTimestamp || Date.now()) : 0,
     guildCount: () => client.guilds.cache.size,
-    userCount: () => client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0),
+    userCount: () =>
+        client.guilds.cache.reduce(
+            (acc, guild) => acc + (guild.memberCount || 0),
+            0
+        ),
 };
+
+module.exports = client;
