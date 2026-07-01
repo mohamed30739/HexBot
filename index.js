@@ -2,6 +2,21 @@
 // إعداد وتأسيس الاتصال الرئيسي للـ bot
 require('dotenv').config();
 
+const express = require("express");
+
+const app = express();
+
+app.get("/", (req, res) => {
+    res.send("Hex Bot Online");
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`🌐 Web Server يعمل على المنفذ ${PORT}`);
+});
+
+// ثم بقية كود البوت...
 const { Client, GatewayIntentBits, Partials } = require('discord.js');
 const { Guilds, GuildMembers, GuildMessages, GuildVoiceStates } = GatewayIntentBits;
 const { Message, User, Thread, Channel } = Partials;
@@ -16,6 +31,7 @@ const client = new Client({
         Guilds,
         GuildMembers,
         GuildMessages,
+    
         GuildVoiceStates,
     ],
     partials: [Message, User, Thread, Channel],
