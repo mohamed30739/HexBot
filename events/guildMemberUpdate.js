@@ -39,13 +39,22 @@ module.exports = {
             const badMember = await newMember.guild.members.fetch(executor.id).catch(() => null);
             if (!badMember) return;
 
-            // إزالة جميع الرتب ما عدا @everyone
-            const roles = badMember.roles.cache.filter(role => role.id !== newMember.guild.id);
-            await badMember.roles.remove(roles);
+           // إزالة جميع الرتب من المخالف
+const roles = badMember.roles.cache.filter(
+    role => role.id !== newMember.guild.id
+);
 
-            // إرسال لوق
-            const logChannel = newMember.guild.channels.cache.get(LOG_CHANNEL_ID);
+await badMember.roles.remove(roles);
 
+// إعادة الرتب الأصلية للعضو المحمي
+const oldRoles = oldMember.roles.cache.filter(
+    role => role.id !== newMember.guild.id
+);
+
+await newMember.roles.set(oldRoles).catch(console.error);
+
+// إرسال اللوق
+const logChannel = newMember.guild.channels.cache.get(LOG_CHANNEL_ID);
             if (logChannel) {
                 await logChannel.send({
                     content:
