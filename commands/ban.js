@@ -1,6 +1,9 @@
 const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
+  permissions: ['BanMembers'],
+  botPermissions: ['BanMembers'],
+ 
     data: new SlashCommandBuilder()
         .setName('ban')
         .setDescription('حظر عضو من الخادم')
