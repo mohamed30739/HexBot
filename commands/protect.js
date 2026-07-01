@@ -14,10 +14,10 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
-     console.log("✅ أمر protect تم تنفيذه");
+        console.log("✅ أمر protect تم تنفيذه");
 
+        const member = interaction.options.getUser("member");
 
-    const member = interaction.options.getUser("member");
         try {
             await protectManager.addUser(member.id);
 
@@ -25,6 +25,7 @@ module.exports = {
                 content: `🛡️ تم توثيق ${member} وإضافته إلى قائمة الحماية.`,
                 ephemeral: true,
             });
+
         } catch (err) {
             console.error(err);
 
